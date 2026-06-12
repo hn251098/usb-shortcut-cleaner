@@ -47,6 +47,7 @@ export function StatusCard() {
         bg-white
         p-6
         shadow-sm
+        col-span-2
       "
     >
       <div className="flex items-start gap-4">
@@ -64,7 +65,7 @@ export function StatusCard() {
         </div>
 
         <div className="flex-1">
-          <p className="text-sm text-slate-500">Protection Status</p>
+          <p className="text-sm text-slate-500">Trạng thái bảo vệ</p>
 
           <h2
             className={`
@@ -74,7 +75,7 @@ export function StatusCard() {
               ${hasThreat ? "text-red-600" : "text-green-600"}
             `}
           >
-            {hasThreat ? "Threat Detected" : "Monitoring"}
+            {hasThreat ? "Phát hiện mối đe dọa" : "Đang giám sát"}
           </h2>
 
           <div
@@ -86,7 +87,7 @@ export function StatusCard() {
             "
           >
             <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Safe</p>
+              <p className="text-xs text-slate-500">An toàn</p>
 
               <p className="text-lg font-semibold text-green-600">
                 {stats.safe}
@@ -94,7 +95,7 @@ export function StatusCard() {
             </div>
 
             <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Scanning</p>
+              <p className="text-xs text-slate-500">Đang quét</p>
 
               <p className="text-lg font-semibold text-blue-600">
                 {stats.scanning}
@@ -102,7 +103,7 @@ export function StatusCard() {
             </div>
 
             <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Suspicious</p>
+              <p className="text-xs text-slate-500">Khả nghi</p>
 
               <p className="text-lg font-semibold text-yellow-600">
                 {stats.suspicious}
@@ -110,7 +111,7 @@ export function StatusCard() {
             </div>
 
             <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Infected</p>
+              <p className="text-xs text-slate-500">Đã nhiễm</p>
 
               <p className="text-lg font-semibold text-red-600">
                 {stats.infected}

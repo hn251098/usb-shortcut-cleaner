@@ -6,9 +6,10 @@ mod commands;
 mod models;
 mod monitor;
 mod scanner;
+mod security;
 mod services;
 mod settings;
-mod state;
+mod window;
 
 use commands::usb::clean_usb_command;
 use commands::usb::get_connected_usb;
@@ -21,15 +22,15 @@ use monitor::usb_monitor::start_usb_monitor;
 
 use services::tray::setup_tray;
 
-use state::AppState;
-
 use tauri_plugin_autostart::MacosLauncher;
+
+use security::commands::clean_computer_command;
+use security::commands::scan_computer_command;
+
+use window::window_event::setup_window_events;
 
 fn main() {
     tauri::Builder::default()
-        .manage(AppState {
-            devices: std::sync::Mutex::new(vec![]),
-        })
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             None,
@@ -39,11 +40,13 @@ fn main() {
             scan_drive,
             clean_usb_command,
             get_settings,
-            update_settings
+            update_settings,
+            scan_computer_command,
+            clean_computer_command
         ])
         .setup(|app| {
             setup_tray(app)?;
-
+            setup_window_events(app);
             start_usb_monitor(app.handle().clone());
 
             Ok(())

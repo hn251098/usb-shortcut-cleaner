@@ -12,8 +12,11 @@ use windows::Win32::Storage::FileSystem::{
 use std::{collections::HashMap, time::Duration};
 
 use tauri::Emitter;
+use tauri::Manager;
 
 use tokio::time::sleep;
+
+use crate::scanner::scanner::scan_usb;
 
 fn widestring_to_string(buffer: &[u16]) -> String {
     let len = buffer.iter().position(|c| *c == 0).unwrap_or(buffer.len());
@@ -110,9 +113,20 @@ pub fn start_usb_monitor(app: tauri::AppHandle) {
             for (drive, device) in &current {
                 if !previous.contains_key(drive) {
                     let _ = app.emit("usb-inserted", device);
-                    use crate::scanner::scanner::scan_usb;
                     let result = scan_usb(&device.drive_letter);
                     let _ = app.emit("scan-result", &result);
+
+                    if let Some(window) = app.get_webview_window("main") {
+                        let visible = window.is_visible().unwrap_or(true);
+
+                        if !visible {
+                            let _ = window.show();
+
+                            let _ = window.unminimize();
+
+                            let _ = window.set_focus();
+                        }
+                    }
                 }
             }
 

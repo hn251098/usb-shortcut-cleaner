@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { ScanResult } from "../../types/scan";
 import { useAppStore } from "../../store/app.store";
 import { Loader2, RefreshCw, ShieldAlert } from "lucide-react";
+import { useNotify } from "../../hooks/useNotify";
 
 interface Props {
   device: UsbDevice;
@@ -20,14 +21,22 @@ export function DeviceCard({ device }: Props) {
   const updateDeviceStatus = useAppStore((state) => state.updateDeviceStatus);
   const addActivity = useAppStore((state) => state.addActivity);
   const setDeviceCleaning = useAppStore((state) => state.setDeviceCleaning);
+  const notify = useNotify();
 
   const handleScan = async () => {
     try {
+      notify({
+        title: "Đang quét USB...",
+        message: `${device.driveLetter}`,
+        type: "info",
+      });
+
       addActivity({
         id: crypto.randomUUID(),
-        message: `Scanning ${device.driveLetter}...`,
+        message: `Đang quét ${device.driveLetter}...`,
         timestamp: new Date().toISOString(),
       });
+
       setDeviceScanning(device.driveLetter, true);
 
       const result = await invoke<ScanResult>("scan_drive", {
@@ -41,9 +50,39 @@ export function DeviceCard({ device }: Props) {
         result.reasons,
         new Date().toISOString(),
       );
+
+      if (result.status === "infected") {
+        notify({
+          title: "Phát hiện mối đe dọa",
+          message:
+            result.reasons.length > 0
+              ? result.reasons.join(", ")
+              : `${device.driveLetter} có thể đã bị nhiễm mã độc`,
+          type: "warning",
+        });
+      } else {
+        notify({
+          title: "USB an toàn",
+          message: `Đã quét thành công ${device.driveLetter}`,
+          type: "success",
+        });
+      }
+
       addActivity({
         id: crypto.randomUUID(),
-        message: `Scan completed (${result.status})`,
+        message: `Quét thành công (${result.status})`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      notify({
+        title: "Quét thất bại",
+        message: "Đã xảy ra lỗi trong quá trình quét. Vui lòng thử lại.",
+        type: "error",
+      });
+
+      addActivity({
+        id: crypto.randomUUID(),
+        message: `Quét thất bại: ${error}`,
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -55,14 +94,26 @@ export function DeviceCard({ device }: Props) {
     try {
       setDeviceCleaning(device.driveLetter, true);
 
+      notify({
+        title: "Đang làm sạch USB...",
+        message: `Đang xử lý ổ đĩa ${device.driveLetter}`,
+        type: "info",
+      });
+
       addActivity({
         id: crypto.randomUUID(),
         message: `Cleaning ${device.driveLetter}...`,
         timestamp: new Date().toISOString(),
       });
 
-      const result = await invoke("clean_usb_command", {
+      await invoke("clean_usb_command", {
         driveLetter: device.driveLetter,
+      });
+
+      notify({
+        title: "Đã làm sạch USB",
+        message: `Đã làm sạch thành công ${device.driveLetter}`,
+        type: "success",
       });
 
       addActivity({
@@ -73,6 +124,12 @@ export function DeviceCard({ device }: Props) {
 
       await handleScan();
     } catch (error) {
+      notify({
+        title: "Không thể làm sạch USB",
+        message: "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại.",
+        type: "error",
+      });
+
       addActivity({
         id: crypto.randomUUID(),
         message: `Clean failed: ${error}`,
@@ -82,18 +139,10 @@ export function DeviceCard({ device }: Props) {
       setDeviceCleaning(device.driveLetter, false);
     }
   };
+
   return (
     <div
-      className={`
-    rounded-3xl
-    bg-white
-    p-6
-    shadow-sm
-    transition-all
-    ${device.isScanning ? "ring-2 ring-blue-200" : ""}
-
-${device.isCleaning ? "ring-2 ring-red-200" : ""}
-  `}
+      className={`rounded-3xl bg-white p-6 shadow-sm transition-all ${device.isScanning ? "ring-2 ring-blue-200" : ""} ${device.isCleaning ? "ring-2 ring-red-200" : ""} `}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -108,20 +157,20 @@ ${device.isCleaning ? "ring-2 ring-red-200" : ""}
       </div>
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-slate-400">File System</p>
+          <p className="text-xs text-slate-400">Hệ thống tệp</p>
 
           <p className="font-medium">{device.fileSystem}</p>
         </div>
 
         <div>
-          <p className="text-xs text-slate-400">Total Capacity</p>
+          <p className="text-xs text-slate-400">Dung lượng</p>
 
           <p className="font-medium">{formatSize(device.totalSpace)} GB</p>
         </div>
       </div>
       <div className="mt-5">
         <div className="mb-2 flex justify-between text-sm">
-          <span>Used</span>
+          <span>Đã sử dụng</span>
 
           <span>{formatSize(used)} GB</span>
         </div>
@@ -153,7 +202,7 @@ ${device.isCleaning ? "ring-2 ring-red-200" : ""}
           text-slate-500
         "
           >
-            Scan Details
+            Thông tin quét
           </p>
 
           {device.lastScannedAt && (
@@ -164,7 +213,7 @@ ${device.isCleaning ? "ring-2 ring-red-200" : ""}
       text-slate-400
     "
             >
-              Last scanned:{" "}
+              Lần quét gần nhất:{" "}
               {dayjs(device.lastScannedAt).format("HH:mm:ss DD/MM/YYYY")}
             </div>
           )}
@@ -216,12 +265,12 @@ ${device.isCleaning ? "ring-2 ring-red-200" : ""}
             {device.isCleaning ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                Cleaning...
+                Đang làm sạch...
               </>
             ) : (
               <>
                 <ShieldAlert size={16} />
-                Clean USB
+                Làm sạch USB
               </>
             )}
           </button>
@@ -267,12 +316,12 @@ ${device.isCleaning ? "ring-2 ring-red-200" : ""}
           {device.isScanning ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              Scanning...
+              Đang quét...
             </>
           ) : (
             <>
               <RefreshCw size={16} />
-              Scan Again
+              Quét lại
             </>
           )}
         </button>

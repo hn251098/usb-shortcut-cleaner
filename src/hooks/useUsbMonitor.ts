@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useAppStore } from "../store/app.store";
 import { UsbDevice } from "../types/usb";
 import { ScanResult } from "../types/scan";
+import { showNotification } from "../lib/notifications";
 
 export function useUsbMonitor() {
   const addDevice = useAppStore((s) => s.addDevice);
@@ -17,17 +18,20 @@ export function useUsbMonitor() {
     let unlistenScaner: (() => void) | undefined;
 
     const setup = async () => {
-      unlistenInserted = await listen<UsbDevice>("usb-inserted", (event) => {
-        const device = event.payload;
+      unlistenInserted = await listen<UsbDevice>(
+        "usb-inserted",
+        async (event) => {
+          const device = event.payload;
 
-        addDevice(device);
+          addDevice(device);
 
-        addActivity({
-          id: crypto.randomUUID(),
-          message: `USB connected: ${device.volumeName} (${device.driveLetter})`,
-          timestamp: new Date().toISOString(),
-        });
-      });
+          addActivity({
+            id: crypto.randomUUID(),
+            message: `Đã phát hiện USB: ${device.volumeName} (${device.driveLetter})`,
+            timestamp: new Date().toISOString(),
+          });
+        },
+      );
 
       unlistenRemoved = await listen<UsbDevice>("usb-removed", (event) => {
         const device = event.payload;
@@ -36,7 +40,7 @@ export function useUsbMonitor() {
 
         addActivity({
           id: crypto.randomUUID(),
-          message: `USB removed: ${device.volumeName} (${device.driveLetter})`,
+          message: `Đã ngắt kết nối USB: ${device.volumeName} (${device.driveLetter})`,
           timestamp: new Date().toISOString(),
         });
       });
@@ -55,7 +59,7 @@ export function useUsbMonitor() {
         addActivity({
           id: crypto.randomUUID(),
 
-          message: `Scan completed: ${result.driveLetter} (${result.status})`,
+          message: `Quét thành công: ${result.driveLetter} (${result.status})`,
 
           timestamp: new Date().toISOString(),
         });

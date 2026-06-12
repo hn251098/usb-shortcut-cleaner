@@ -46,7 +46,7 @@ export function StatusBadge({ status }: Props) {
         "
       >
         <ShieldCheck size={14} />
-        Safe
+        An toàn
       </div>
     );
   }
@@ -68,7 +68,7 @@ export function StatusBadge({ status }: Props) {
         "
       >
         <ShieldAlert size={14} />
-        Suspicious
+        Khả nghi
       </div>
     );
   }
@@ -89,7 +89,7 @@ export function StatusBadge({ status }: Props) {
       "
     >
       <ShieldAlert size={14} />
-      Infected
+      Đã nhiễm mã độc
     </div>
   );
 }

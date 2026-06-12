@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "usb-shortcut-detection",
+  "productName": "USB Virus Cleaner",
   "version": "0.1.0",
   "identifier": "com.admin.usb-shortcut-detection",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "usb-shortcut-detection",
+        "title": "USB Virus Cleaner",
         "width": 1440,
         "height": 720
       }

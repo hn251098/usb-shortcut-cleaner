@@ -4,10 +4,9 @@ use crate::models::scan_result::ScanResult;
 use crate::models::usb_device::UsbDevice;
 use crate::monitor::usb_monitor::get_usb_devices;
 use crate::scanner::scanner::scan_usb;
-use crate::state::AppState;
 
 #[tauri::command]
-pub fn get_connected_usb(state: tauri::State<AppState>) -> Vec<UsbDevice> {
+pub fn get_connected_usb() -> Vec<UsbDevice> {
     // state.devices.lock().unwrap().clone()
     get_usb_devices()
 }

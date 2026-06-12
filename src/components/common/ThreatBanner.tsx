@@ -39,7 +39,7 @@ export function ThreatBanner() {
               text-red-700
             "
           >
-            Threat Detected
+            Phát hiện nguy cơ
           </h2>
 
           <p
@@ -49,7 +49,7 @@ export function ThreatBanner() {
               text-red-600
             "
           >
-            One or more USB devices may contain shortcut virus signatures.
+            Một hoặc nhiều thiết bị USB có nguy cơ chứa virus shortcut.
           </p>
 
           <div className="mt-3">
