@@ -162,125 +162,108 @@ export function DeviceCard({ device }: Props) {
 
   return (
     <div
-      className={`rounded-3xl bg-white p-6 shadow-sm transition-all ${device.isScanning ? "ring-2 ring-blue-200" : ""} ${device.isCleaning ? "ring-2 ring-red-200" : ""} `}
+      className={`rounded-2xl bg-white p-4 shadow-sm transition-all ${
+        device.isScanning ? "ring-2 ring-blue-200" : ""
+      } ${device.isCleaning ? "ring-2 ring-red-200" : ""}`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold">
             {device.volumeName || "Unnamed USB"}
           </h3>
 
-          <p className="text-sm text-slate-500">{device.driveLetter}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {device.driveLetter} • {device.fileSystem} •{" "}
+            {formatSize(device.totalSpace)} GB
+          </p>
         </div>
 
         <StatusBadge status={device.status} />
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-slate-400">Hệ thống tệp</p>
 
-          <p className="font-medium">{device.fileSystem}</p>
-        </div>
-
-        <div>
-          <p className="text-xs text-slate-400">Dung lượng</p>
-
-          <p className="font-medium">{formatSize(device.totalSpace)} GB</p>
-        </div>
-      </div>
-      <div className="mt-5">
-        <div className="mb-2 flex justify-between text-sm">
+      {/* Storage */}
+      <div className="mt-4">
+        <div className="mb-1 flex justify-between text-xs text-slate-500">
           <span>Đã sử dụng</span>
 
-          <span>{formatSize(used)} GB</span>
+          <span>
+            {formatSize(used)} / {formatSize(device.totalSpace)} GB
+          </span>
         </div>
 
         <div className="h-2 rounded-full bg-slate-100">
           <div
-            className="h-2 rounded-full bg-blue-600"
+            className="h-2 rounded-full bg-blue-600 transition-all"
             style={{
               width: `${(used / device.totalSpace) * 100}%`,
             }}
           />
         </div>
       </div>
-      {device.reasons && device.reasons.length > 0 && (
-        <div
-          className="
-        mt-4
-        rounded-2xl
-        bg-slate-50
-        p-3
-      "
-        >
-          <p
-            className="
-          mb-2
-          text-xs
-          font-semibold
-          uppercase
-          text-slate-500
-        "
-          >
-            Thông tin quét
-          </p>
 
-          {device.lastScannedAt && (
-            <div
-              className="
-      mt-3
-      text-xs
-      text-slate-400
-    "
-            >
-              Lần quét gần nhất:{" "}
-              {dayjs(device.lastScannedAt).format("HH:mm:ss DD/MM/YYYY")}
+      {/* Scan info */}
+      {(device.reasons?.length > 0 || device.lastScannedAt) && (
+        <div className="mt-4 rounded-xl bg-slate-50 p-3">
+          {device.reasons?.length > 0 && (
+            <div className="flex items-start gap-2">
+              <ShieldAlert
+                size={16}
+                className="mt-0.5 shrink-0 text-amber-500"
+              />
+
+              <div className="min-w-0">
+                <p className="text-sm text-slate-700">{device.reasons[0]}</p>
+
+                {device.reasons.length > 1 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    +{device.reasons.length - 1} dấu hiệu khác
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
-          <ul className="space-y-1">
-            {device.reasons.map((reason) => (
-              <li
-                key={reason}
-                className="
-                text-sm
-                text-slate-600
-              "
-              >
-                • {reason}
-              </li>
-            ))}
-          </ul>
+          {device.lastScannedAt && (
+            <p className="mt-2 text-xs text-slate-400">
+              Quét lúc{" "}
+              {dayjs(device.lastScannedAt).format("HH:mm:ss DD/MM/YYYY")}
+            </p>
+          )}
         </div>
       )}
-      <div className="mt-5 flex flex-wrap gap-3">
+
+      {/* Actions */}
+      <div className="mt-4 flex gap-2">
         {device.status === "infected" && (
           <button
             disabled={device.isCleaning || device.isScanning}
             onClick={handleClean}
             className="
-        inline-flex
-        items-center
-        gap-2
+          flex-1
+          inline-flex
+          items-center
+          justify-center
+          gap-2
 
-        rounded-xl
+          rounded-xl
 
-        bg-red-600
-        px-4
-        py-2
+          bg-red-600
 
-        text-sm
-        font-medium
-        text-white
+          px-3
+          py-2
 
-        shadow-sm
-        transition-all
+          text-sm
+          font-medium
+          text-white
 
-        hover:bg-red-700
+          transition-all
 
-        disabled:cursor-not-allowed
-        disabled:bg-slate-300
-      "
+          hover:bg-red-700
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-300
+        "
           >
             {device.isCleaning ? (
               <>
@@ -290,7 +273,7 @@ export function DeviceCard({ device }: Props) {
             ) : (
               <>
                 <ShieldAlert size={16} />
-                Làm sạch USB
+                Làm sạch
               </>
             )}
           </button>
@@ -300,38 +283,39 @@ export function DeviceCard({ device }: Props) {
           disabled={device.isScanning || device.isCleaning}
           onClick={handleScan}
           className="
-      inline-flex
-      items-center
-      gap-2
+        flex-1
 
-      rounded-xl
+        inline-flex
+        items-center
+        justify-center
+        gap-2
 
-      border
-      border-slate-200
+        rounded-xl
 
-      bg-white
+        border
+        border-slate-200
 
-      px-4
-      py-2
+        bg-white
 
-      text-sm
-      font-medium
+        px-3
+        py-2
 
-      text-slate-700
+        text-sm
+        font-medium
 
-      shadow-sm
+        text-slate-700
 
-      transition-all
+        transition-all
 
-      hover:border-blue-300
-      hover:bg-blue-50
-      hover:text-blue-700
+        hover:border-blue-300
+        hover:bg-blue-50
+        hover:text-blue-700
 
-      disabled:cursor-not-allowed
-      disabled:border-slate-100
-      disabled:bg-slate-50
-      disabled:text-slate-400
-    "
+        disabled:cursor-not-allowed
+        disabled:border-slate-100
+        disabled:bg-slate-50
+        disabled:text-slate-400
+      "
         >
           {device.isScanning ? (
             <>

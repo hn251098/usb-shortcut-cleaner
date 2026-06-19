@@ -15,7 +15,7 @@ export interface UsbDevice {
 
   score?: number;
 
-  reasons?: string[];
+  reasons: string[];
 
   lastScannedAt?: string;
 
