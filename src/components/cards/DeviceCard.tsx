@@ -25,11 +25,14 @@ export function DeviceCard({ device }: Props) {
 
   const handleScan = async () => {
     try {
-      notify({
-        title: "Đang quét USB...",
-        message: `${device.driveLetter}`,
-        type: "info",
-      });
+      const id = notify.push(
+        {
+          title: "Đang quét USB...",
+          message: `${device.driveLetter}`,
+          type: "info",
+        },
+        0,
+      );
 
       addActivity({
         id: crypto.randomUUID(),
@@ -39,9 +42,12 @@ export function DeviceCard({ device }: Props) {
 
       setDeviceScanning(device.driveLetter, true);
 
-      const result = await invoke<ScanResult>("scan_drive", {
-        driveLetter: device.driveLetter,
-      });
+      const [result] = await Promise.all([
+        invoke<ScanResult>("scan_drive", {
+          driveLetter: device.driveLetter,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
 
       updateDeviceStatus(
         result.driveLetter,
@@ -52,7 +58,7 @@ export function DeviceCard({ device }: Props) {
       );
 
       if (result.status === "infected") {
-        notify({
+        notify.update(id, {
           title: "Phát hiện mối đe dọa",
           message:
             result.reasons.length > 0
@@ -61,7 +67,7 @@ export function DeviceCard({ device }: Props) {
           type: "warning",
         });
       } else {
-        notify({
+        notify.update(id, {
           title: "USB an toàn",
           message: `Đã quét thành công ${device.driveLetter}`,
           type: "success",
@@ -73,8 +79,12 @@ export function DeviceCard({ device }: Props) {
         message: `Quét thành công (${result.status})`,
         timestamp: new Date().toISOString(),
       });
+
+      setTimeout(() => {
+        notify.remove(id);
+      }, 3000);
     } catch (error) {
-      notify({
+      notify.push({
         title: "Quét thất bại",
         message: "Đã xảy ra lỗi trong quá trình quét. Vui lòng thử lại.",
         type: "error",
@@ -94,11 +104,14 @@ export function DeviceCard({ device }: Props) {
     try {
       setDeviceCleaning(device.driveLetter, true);
 
-      notify({
-        title: "Đang làm sạch USB...",
-        message: `Đang xử lý ổ đĩa ${device.driveLetter}`,
-        type: "info",
-      });
+      const id = notify.push(
+        {
+          title: "Đang làm sạch USB...",
+          message: `Đang xử lý ổ đĩa ${device.driveLetter}`,
+          type: "info",
+        },
+        0,
+      );
 
       addActivity({
         id: crypto.randomUUID(),
@@ -106,11 +119,14 @@ export function DeviceCard({ device }: Props) {
         timestamp: new Date().toISOString(),
       });
 
-      await invoke("clean_usb_command", {
-        driveLetter: device.driveLetter,
-      });
+      await Promise.all([
+        invoke<ScanResult>("clean_usb_command", {
+          driveLetter: device.driveLetter,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
 
-      notify({
+      notify.update(id, {
         title: "Đã làm sạch USB",
         message: `Đã làm sạch thành công ${device.driveLetter}`,
         type: "success",
@@ -123,8 +139,12 @@ export function DeviceCard({ device }: Props) {
       });
 
       await handleScan();
+
+      setTimeout(() => {
+        notify.remove(id);
+      }, 3000);
     } catch (error) {
-      notify({
+      notify.push({
         title: "Không thể làm sạch USB",
         message: "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại.",
         type: "error",

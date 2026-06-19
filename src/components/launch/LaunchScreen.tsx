@@ -79,6 +79,10 @@ export function LaunchScreen() {
         >
           Phiên bản {version}
         </div>
+
+        <div className="mt-4 text-sm text-slate-500">
+          Phát triển bởi <span className="font-medium">Tổ CNTT Sư đoàn</span>
+        </div>
       </div>
     </div>
   );

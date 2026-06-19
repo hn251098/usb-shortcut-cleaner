@@ -4,7 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useAppStore } from "../store/app.store";
 import { UsbDevice } from "../types/usb";
 import { ScanResult } from "../types/scan";
-import { showNotification } from "../lib/notifications";
+import { useNotificationStore } from "../store/notification.store";
 
 export function useUsbMonitor() {
   const addDevice = useAppStore((s) => s.addDevice);
@@ -29,6 +29,12 @@ export function useUsbMonitor() {
             id: crypto.randomUUID(),
             message: `Đã phát hiện USB: ${device.volumeName} (${device.driveLetter})`,
             timestamp: new Date().toISOString(),
+          });
+
+          useNotificationStore.getState().push({
+            title: "USB đã kết nối",
+            message: event.payload.driveLetter,
+            type: "info",
           });
         },
       );

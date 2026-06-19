@@ -11,7 +11,7 @@ export function NotificationItem({ notification }: Props) {
     success: {
       icon: CheckCircle2,
 
-      className: "border-green-200 bg-green-50",
+      className: "border-green-200 bg-green-200",
     },
 
     error: {

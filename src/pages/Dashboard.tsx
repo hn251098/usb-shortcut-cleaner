@@ -77,13 +77,16 @@ export default function Dashboard() {
         message: `Đang quét ${device.driveLetter}...`,
         timestamp: new Date().toISOString(),
       });
-      notify({
-        type: "info",
+      const id = notify.push(
+        {
+          type: "info",
 
-        title: "Đang quét USB",
+          title: "Đang quét USB",
 
-        message: `Đang kiểm tra ổ đĩa ${device.driveLetter}`,
-      });
+          message: `Đang kiểm tra ổ đĩa ${device.driveLetter}`,
+        },
+        0,
+      );
 
       setDeviceScanning(device.driveLetter, true);
 
@@ -92,7 +95,7 @@ export default function Dashboard() {
       });
 
       if (result.status === "infected") {
-        notify({
+        notify.update(id, {
           type: "warning",
 
           title: "Phát hiện mối đe dọa",
@@ -100,7 +103,7 @@ export default function Dashboard() {
           message: result.reasons.join(", "),
         });
       } else {
-        notify({
+        notify.update(id, {
           type: "success",
 
           title: "USB an toàn",
@@ -121,6 +124,10 @@ export default function Dashboard() {
         message: `Quét thành công (${result.status})`,
         timestamp: new Date().toISOString(),
       });
+
+      setTimeout(() => {
+        notify.remove(id);
+      }, 3000);
     } finally {
       setDeviceScanning(device.driveLetter, false);
     }
@@ -128,7 +135,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <div className="mx-auto max-w-8xl px-8 py-10">
+      <div className="mx-auto px-8 py-10">
         <div className="mb-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
@@ -153,7 +160,7 @@ export default function Dashboard() {
 
         <ThreatBanner />
 
-        <div className="grid gap-5 md:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-5">
           <StatusCard />
 
           <div className="flex flex-col gap-5 justify-between">
@@ -176,10 +183,10 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div>
+          <div className="col-span-2">
             <h2 className="mb-4 text-xl font-semibold">Lịch sử hoạt động</h2>
 
-            <div className="space-y-3 overflow-scroll scroll-smooth overflow-x-hidden max-h-[240px]">
+            <div className="thin-scrollbar space-y-3 overflow-y-auto overflow-x-hidden max-h-[240px] pr-1">
               {activities.slice(0, 10).map((activity) => (
                 <ActivityCard
                   key={activity.id}

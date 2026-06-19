@@ -63,19 +63,25 @@ export function ComputerProtectionCard() {
 
   async function handleScan() {
     try {
-      notify({
-        title: "Đang quét hệ thống...",
-        message: "Kiểm tra các mục khởi động và thư mục hệ thống đáng ngờ",
-        type: "info",
-      });
+      const id = notify.push(
+        {
+          title: "Đang quét hệ thống...",
+          message: "Kiểm tra các mục khởi động và thư mục hệ thống đáng ngờ",
+          type: "info",
+        },
+        0,
+      );
 
-      const result = await invoke<ComputerScanResult>("scan_computer_command");
+      const [result] = await Promise.all([
+        invoke<ComputerScanResult>("scan_computer_command"),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ]);
 
       if (result.infected) {
         setStatus("infected");
         setThreats(result.threats);
 
-        notify({
+        notify.update(id, {
           title: "Phát hiện mối đe dọa",
           message: `Đã tìm thấy ${result.threats.length} mục đáng ngờ`,
           type: "warning",
@@ -84,14 +90,17 @@ export function ComputerProtectionCard() {
         setStatus("safe");
         setThreats([]);
 
-        notify({
+        notify.update(id, {
           title: "Máy tính an toàn",
           message: "Không phát hiện dấu hiệu của virus shortcut",
           type: "success",
         });
       }
+      setTimeout(() => {
+        notify.remove(id);
+      }, 3000);
     } catch (error) {
-      notify({
+      notify.push({
         title: "Quét thất bại",
         message: "Đã xảy ra lỗi trong quá trình quét. Vui lòng thử lại.",
         type: "error",
@@ -101,33 +110,38 @@ export function ComputerProtectionCard() {
 
   async function handleClean() {
     try {
-      notify({
-        title: "Đang làm sạch máy tính...",
-        message: "Đang xóa các tệp và mục khởi động đáng ngờ",
-        type: "info",
-      });
+      const id = notify.push(
+        {
+          title: "Đang làm sạch máy tính...",
+          message: "Đang xóa các tệp và mục khởi động đáng ngờ",
+          type: "info",
+        },
+        0,
+      );
 
       const result = await invoke<CleanComputerResult>(
         "clean_computer_command",
       );
 
       if (result.success) {
-        notify({
+        notify.update(id, {
           title: "Dọn dẹp hoàn tất",
           message: `Đã loại bỏ ${result.removed_items.length} mục`,
           type: "success",
         });
       } else {
-        notify({
+        notify.update(id, {
           title: "Dọn dẹp hoàn tất với cảnh báo",
           message: `Đã xảy ra ${result.errors.length} sự cố`,
           type: "warning",
         });
       }
-
+      setTimeout(() => {
+        notify.remove(id);
+      }, 3000);
       await handleScan();
     } catch (error) {
-      notify({
+      notify.push({
         title: "Dọn dẹp thất bại",
         message: "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại.",
         type: "error",
