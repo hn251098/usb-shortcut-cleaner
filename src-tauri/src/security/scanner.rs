@@ -45,21 +45,37 @@ fn scan_hkcu_run(threats: &mut Vec<ComputerThreat>) -> bool {
         return false;
     };
 
-    let Ok(value): Result<String, _> = run.get_value("Opera") else {
-        return false;
-    };
+    let mut found = false;
 
-    threats.push(ComputerThreat {
-        id: "hkcu-opera".into(),
+    for item in run.enum_values() {
+        let Ok((name, _)) = item else {
+            continue;
+        };
 
-        name: "Startup Entry".into(),
+        let Ok(value): Result<String, _> = run.get_value(&name) else {
+            continue;
+        };
 
-        path: value,
+        let valid_name = matches!(name.as_str(), "assistant" | "assistantMgC");
 
-        threat_type: "registry".into(),
-    });
+        let valid_path = matches!(
+            value.as_str(),
+            r"C:\ProgramData\assistant\opera.exe" | r"C:\ProgramData\assistantMgC\opera.exe"
+        );
 
-    true
+        if valid_name && valid_path {
+            threats.push(ComputerThreat {
+                id: format!("hkcu-{}", name),
+                name: "Startup Entry".into(),
+                path: value,
+                threat_type: "registry".into(),
+            });
+
+            found = true;
+        }
+    }
+
+    found
 }
 
 fn scan_hklm_run(threats: &mut Vec<ComputerThreat>) -> bool {
@@ -70,21 +86,37 @@ fn scan_hklm_run(threats: &mut Vec<ComputerThreat>) -> bool {
         return false;
     };
 
-    let Ok(value): Result<String, _> = run.get_value("Opera") else {
-        return false;
-    };
+    let mut found = false;
 
-    threats.push(ComputerThreat {
-        id: "hklm-opera".into(),
+    for item in run.enum_values() {
+        let Ok((name, _)) = item else {
+            continue;
+        };
 
-        name: "Startup Entry".into(),
+        let Ok(value): Result<String, _> = run.get_value(&name) else {
+            continue;
+        };
 
-        path: value,
+        let valid_name = matches!(name.as_str(), "assistant" | "assistantMgC");
 
-        threat_type: "registry".into(),
-    });
+        let valid_path = matches!(
+            value.as_str(),
+            r"C:\ProgramData\assistant\opera.exe" | r"C:\ProgramData\assistantMgC\opera.exe"
+        );
 
-    true
+        if valid_name && valid_path {
+            threats.push(ComputerThreat {
+                id: format!("hkcu-{}", name),
+                name: "Startup Entry".into(),
+                path: value,
+                threat_type: "registry".into(),
+            });
+
+            found = true;
+        }
+    }
+
+    found
 }
 
 pub fn scan_computer() -> ComputerScanResult {

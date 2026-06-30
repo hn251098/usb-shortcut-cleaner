@@ -61,13 +61,16 @@ fn remove_hkcu_run(removed: &mut Vec<String>, errors: &mut Vec<String>) {
         return;
     };
 
-    match run.delete_value("Opera") {
-        Ok(_) => {
-            removed.push("HKCU Run\\opera.exe".into());
-        }
-
-        Err(err) => {
-            errors.push(format!("HKCU Run => {}", err));
+    for name in ["assistant", "assistantMgC"] {
+        match run.delete_value(name) {
+            Ok(_) => {
+                removed.push(format!(r"HKCU Run\{}", name));
+            }
+            Err(err) => {
+                if err.kind() != std::io::ErrorKind::NotFound {
+                    errors.push(format!(r"HKCU Run\{} => {}", name, err));
+                }
+            }
         }
     }
 }
@@ -77,18 +80,38 @@ fn remove_hklm_run(removed: &mut Vec<String>, errors: &mut Vec<String>) {
 
     let Ok(run) = hklm.open_subkey_with_flags(
         r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run",
-        KEY_WRITE,
+        KEY_READ | KEY_WRITE,
     ) else {
         return;
     };
 
-    match run.delete_value("Opera") {
-        Ok(_) => {
-            removed.push("HKLM Run\\opera.exe".into());
+    for item in run.enum_values() {
+        let Ok((name, _)) = item else {
+            continue;
+        };
+
+        let Ok(value): Result<String, _> = run.get_value(&name) else {
+            continue;
+        };
+
+        let valid_name = matches!(name.as_str(), "assistant" | "assistantMgC");
+
+        let valid_path = matches!(
+            value.as_str(),
+            r"C:\ProgramData\assistant\opera.exe" | r"C:\ProgramData\assistantMgC\opera.exe"
+        );
+
+        if !(valid_name && valid_path) {
+            continue;
         }
 
-        Err(err) => {
-            errors.push(format!("HKLM Run => {}", err));
+        match run.delete_value(&name) {
+            Ok(_) => {
+                removed.push(format!(r"HKLM Run\{}", name));
+            }
+            Err(err) => {
+                errors.push(format!(r"HKLM Run\{} => {}", name, err));
+            }
         }
     }
 }
